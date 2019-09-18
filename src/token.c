@@ -21,6 +21,27 @@ int dfu_token_request_pin(char *pin, unsigned int *pin_len, token_pin_types pin_
     uint32_t resp_magic;
 
     if(action == TOKEN_PIN_AUTHENTICATE){
+        if(pin_type == TOKEN_PET_PIN){
+            /* First, we check that the token is indeed a DFU token */
+            if(!dfu_token_is_inserted(&curr_token_channel)){
+#if SMART_DEBUG
+                printf("Error: token that is inserted is *not* DFU token ...\n");
+#endif
+                /* FIXME: this is a place holder to ask PIN to print an error */
+                goto err;
+            }
+            /* If the proper configuration has been set check that AUTH applet is not present */
+#ifdef CONFIG_USE_DIFFERENT_PHYSICAL_TOKENS
+            if(auth_token_is_inserted(&curr_token_channel)){
+#if SMART_DEBUG
+                printf("Error: inserted token contains both DFU and AUTH applets, this is wrong ...\n");
+#endif
+                /* FIXME: this is a place holder to ask PIN to print an error */
+                goto err;
+            }
+#endif
+        }
+
 #if SMART_DEBUG
         printf("Request PIN for authentication\n");
 #endif
